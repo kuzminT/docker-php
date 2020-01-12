@@ -1,0 +1,58 @@
+version: '3.3'
+services:
+  nginx:
+    # Пропишем какой образ мы хотим использовать
+    image: nginx:latest
+    # Назовем свой контейнер по красивому
+    container_name: nginx
+    # Проброс портов
+    ports:
+      - "80:80"
+      - "443:443"
+
+    depends_on:
+      - php
+
+    links:
+      - php
+    volumes:
+      - ./docker/nginx/etc/nginx.conf:/etc/nginx/nginx.conf
+      - ./docker/nginx/vhosts.d/:/etc/nginx/vhosts.d
+      - ./srv/app:/var/www/html/app
+      - ./docker/nginx/logs:/var/log/nginx/
+      - ./docker/nginx/etc/conf.d:/etc/nginx/conf.d
+
+  php:
+    #image: php5.4:latest
+    build: ./php
+    container_name: php5.4
+#    image: php:5.4-fpm
+    #    image: php:7-fpm
+    volumes:
+      - ./srv/app:/var/www/html/app
+      - ./docker/php/etc/php.ini:/usr/local/etc/php/conf.d/99-custom.ini
+    #ports: "8080:9000"
+    links:
+      - mysql
+
+
+  mysql:
+
+    image: mysql:latest
+
+    ports:
+    - "3306:3306"
+
+    container_name: mysql
+    # Пропишем настройки, предлагаю использовать вместо mypassword более сложный пароль, он пренадлежит root
+    environment:
+
+      - MYSQL_ROOT_PASSWORD=1234
+      - MYSQL_DATABASE=test
+      - MYSQL_USER=test
+      - MYSQL_PASSWORD=test
+
+
+    volumes:
+      - ./docker/mysql/lib:/var/lib/mysql
+      - ./docker/mysql/etc/my.cnf:/etc/mysql/my.cnf
